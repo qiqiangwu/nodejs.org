@@ -230,6 +230,7 @@ recipients.forEach(function (recipient) {
 3. **Limited parallel:** parallel with limit, such as successfully emailing 1,000,000 recipients from a list of 10E7 users.
 
 ```js
+let count = 0;
 let successCount = 0;
 
 function final() {
@@ -253,15 +254,18 @@ function sendOneMillionEmailsOnly() {
   getListOfTenMillionGreatEmails(function (err, bigList) {
     if (err) throw err;
 
-    function serial(recipient) {
-      if (!recipient || successCount >= 1000000) return final();
-      dispatch(recipient, function (_err) {
-        if (!_err) successCount += 1;
-        serial(bigList.pop());
-      });
-    }
+    bigList.forEach(function (recipient) {
+      dispatch(recipient, function (err) {
+        if (!err) {
+          successCount += 1;
+        }
+        count += 1;
 
-    serial(bigList.pop());
+        if(count === recipients.length || successCount >= 1000000){
+          final();
+        }
+      });
+    });
   });
 }
 
